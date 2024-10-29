@@ -1,0 +1,9 @@
+* Main stuff
+** TODO Make poetry project
+*** TODO Setup poetry2nix
+https://github.com/nix-community/poetry2nix/tree/master
+*** TODO Test it works(tm)
+** TODO Get jinja templating or whatever
+** TODO Find library for web stuffs
+** TODO MusicBrainz API
+** TODO Client Connection blah blah blah
