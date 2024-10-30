@@ -7,3 +7,6 @@ https://github.com/nix-community/poetry2nix/tree/master
 ** TODO Find library for web stuffs
 ** TODO MusicBrainz API
 ** TODO Client Connection blah blah blah
+* Extra
+** TODO Write README.md
+** TODO Write docs
