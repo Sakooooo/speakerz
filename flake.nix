@@ -25,6 +25,8 @@
             packages = with pkgs.${system}; [
               (mkPoetryEnv { projectDir = self; })
               poetry
+              pyright
+              black
             ];
           };
         });
