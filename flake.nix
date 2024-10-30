@@ -1,46 +1,32 @@
 {
-  description = "A very basic flake";
-
-  inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs?ref=nixos-unstable";
-    poetry2nix = {
-      url = "github:nix-community/poetry2nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
-  };
+  description = "speakerz flake";
+  inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+  inputs.poetry2nix.url = "github:nix-community/poetry2nix";
 
   outputs = { self, nixpkgs, poetry2nix }:
     let
-      inherit (nixpkgs) lib;
-      inherit (builtins) attrValues;
-      eachSystem = f:
-        lib.genAttrs [ "x86_64-linux" ]
-        (system: f nixpkgs.legacyPackages.${system});
-      inherit (poetry2nix.lib.mkPoetry2Nix {
-        inherit (nixpkgs.legacyPackages."x86_64-linux")
-        ;
-      })
-        mkPoetryApplication;
+      supportedSystems =
+        [ "x86_64-linux" "x86_64-darwin" "aarch64-linux" "aarch64-darwin" ];
+      forAllSystems = nixpkgs.lib.genAttrs supportedSystems;
+      pkgs = forAllSystems (system: nixpkgs.legacyPackages.${system});
     in {
-      packages.default = mkPoetryApplication {
-        projectDir = self;
-        overrides = poetry2nix.overrides.withDefaults (final: super:
-          lib.mapAttrs (attr: systems:
-            super.${attr}.overridePythonAttrs (old: {
-              nativeBuildInputs = (old.nativeBuildInputs or [ ])
-                ++ map (a: final.${a}) systems;
-            })) {
-              # https://github.com/nix-community/poetry2nix/blob/master/docs/edgecases.md#modulenotfounderror-no-module-named-packagename
-              # package = [ "setuptools" ];
-            });
+      packages = forAllSystems (system:
+        let
+          inherit (poetry2nix.lib.mkPoetry2Nix { pkgs = pkgs.${system}; })
+            mkPoetryApplication;
+        in { default = mkPoetryApplication { projectDir = self; }; });
 
-      };
-      devShells = eachSystem (pkgs: {
-        default = pkgs.mkShell {
-          packages = attrValues { inherit (pkgs) python3 poetry; };
-          inputsFrom = [ self.packages.default ];
-        };
-      });
-
+      devShells = forAllSystems (system:
+        let
+          inherit (poetry2nix.lib.mkPoetry2Nix { pkgs = pkgs.${system}; })
+            mkPoetryEnv;
+        in {
+          default = pkgs.${system}.mkShellNoCC {
+            packages = with pkgs.${system}; [
+              (mkPoetryEnv { projectDir = self; })
+              poetry
+            ];
+          };
+        });
     };
 }
