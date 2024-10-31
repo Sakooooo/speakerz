@@ -1,7 +1,10 @@
 from flask import Flask
 from flask import render_template
+import logging
 
 app = Flask(__name__)
+
+logging.basicConfig(level=logging.INFO)
 
 
 @app.route("/")
@@ -19,6 +22,11 @@ def hello_dynamic(thing=None):
     return render_template("hello.html", thing=thing)
 
 
+@app.route("/home")
+def home():
+    return render_template("home.html")
+
+
 if __name__ == "__main__":
-    print("Ok")
+    logging.info("Starting...")
     app.run()
